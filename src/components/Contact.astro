@@ -21,13 +21,16 @@
       </a>
     </div>
     <div class="links reveal">
-      <a href="mailto:thanhhai9x98@gmail.com" class="link" target="_blank" rel="noopener noreferrer" id="email-link" title="Send email (or copy to clipboard)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="4" width="20" height="16" rx="2" />
-          <path d="M22 7l-10 7L2 7" />
-        </svg>
-        thanhhai9x98@gmail.com
-      </a>
+      <div class="email-wrapper" style="position: relative; display: inline-flex; align-items: center;">
+        <a href="mailto:thanhhai9x98@gmail.com" class="link" id="email-link" title="Send email (or copy to clipboard)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="M22 7l-10 7L2 7" />
+          </svg>
+          thanhhai9x98@gmail.com
+        </a>
+        <span id="email-tooltip" class="tooltip">Copied to clipboard!</span>
+      </div>
       <a
         href="https://github.com/haingt-dev"
         class="link"
@@ -54,10 +57,15 @@
   </div>
   <script>
     const emailLink = document.getElementById('email-link');
-    if (emailLink) {
-      emailLink.addEventListener('click', (e) => {
+    const tooltip = document.getElementById('email-tooltip');
+    
+    if (emailLink && tooltip) {
+      emailLink.addEventListener('click', () => {
         // Automatically copy to clipboard as a fallback for OS without mail clients
-        navigator.clipboard.writeText('thanhhai9x98@gmail.com').catch(() => {});
+        navigator.clipboard.writeText('thanhhai9x98@gmail.com').then(() => {
+          tooltip.classList.add('show');
+          setTimeout(() => tooltip.classList.remove('show'), 2000);
+        }).catch(() => {});
       });
     }
   </script>
@@ -126,5 +134,29 @@
     .link {
       transition: none;
     }
+  }
+
+  .tooltip {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(5px);
+    background: var(--color-surface-hover);
+    color: var(--color-accent);
+    padding: 6px 10px;
+    border-radius: var(--radius, 6px);
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    opacity: 0;
+    pointer-events: none;
+    border: 1px solid var(--color-border);
+    white-space: nowrap;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: var(--shadow-card);
+  }
+  
+  .tooltip.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 </style>
