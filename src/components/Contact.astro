@@ -22,12 +22,12 @@
     </div>
     <div class="links reveal">
       <div class="email-wrapper" style="position: relative; display: inline-flex; align-items: center;">
-        <a href="mailto:thanhhai9x98@gmail.com" class="link" id="email-link" title="Send email (or copy to clipboard)">
+        <a href="mailto:hai@haingt.dev" class="link" id="email-link" title="Send email (or copy to clipboard)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <rect x="2" y="4" width="20" height="16" rx="2" />
             <path d="M22 7l-10 7L2 7" />
           </svg>
-          thanhhai9x98@gmail.com
+          hai@haingt.dev
         </a>
         <span id="email-tooltip" class="tooltip">Copied to clipboard!</span>
       </div>
@@ -62,7 +62,7 @@
     if (emailLink && tooltip) {
       emailLink.addEventListener('click', () => {
         // Automatically copy to clipboard as a fallback for OS without mail clients
-        navigator.clipboard.writeText('thanhhai9x98@gmail.com').then(() => {
+        navigator.clipboard.writeText('hai@haingt.dev').then(() => {
           tooltip.classList.add('show');
           setTimeout(() => tooltip.classList.remove('show'), 2000);
         }).catch(() => {});
