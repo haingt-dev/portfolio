@@ -2,6 +2,9 @@
 
 @~/.claude/brains/indie-ecosystem.md
 
+## Reference
+- Design system (color tokens, typography, components), frontend stack, hard constraints + quality gates live in root `AGENTS.md` — NOT auto-loaded. Read it before any UI/styling/build work.
+
 ## Project Values
 - **Minimal impact** — Make the smallest changes necessary. Don't over-engineer
 - **No dirty state** — Don't leave the environment broken. Verify changes work before completing a task
@@ -9,18 +12,6 @@
 
 ### Boundaries
 <!-- TODO: Add project-specific boundaries -->
-
-## Memory Bank
-Auto-loaded at session start (brief, context, task, tech). Full files in `.memory-bank/`:
-- `brief.md` — Project goals and scope
-- `product.md` — Product context and constraints
-- `context.md` — Recent changes and carry-forward notes
-- `task.md` — Active tasks and sprint focus
-- `architecture.md` — System architecture
-- `tech.md` — Tech stack and tooling
-- `stories/` — Dev stories for devlogs (not auto-loaded, use `/story` to capture)
-
-After major tasks or architectural changes, update relevant Memory Bank files.
 
 ## Security
 **CRITICAL**: NEVER commit, push, or expose secrets, API keys, tokens, or credentials to version control.
