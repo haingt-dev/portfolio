@@ -1,0 +1,157 @@
+---
+// A train of meshing gears. Static markup is already in mesh; the motion script
+// (data-gear-train) turns the driver and derives every other gear from it.
+// `annotate` adds drafting marks that stay still: centre lines and a tooth count per gear.
+import { placeTrain, type GearSpec } from '../lib/gears';
+
+interface Props {
+  specs: GearSpec[];
+  module: number;
+  /** Omit to fit the train (plus a margin) automatically. */
+  viewBox?: string;
+  class?: string;
+  /** Driver speed in degrees per second at rest. */
+  speed?: number;
+  annotate?: boolean;
+  /** With `annotate`: prefix each label with its 1-based gear number (<tspan class="n">). */
+  numbered?: boolean;
+  /** Font size of the labels, in module units (default 1.5). */
+  noteSize?: number;
+}
+
+const { specs, module, viewBox, class: className, speed = 6, annotate = false, numbered = false, noteSize = 1.5 } = Astro.props;
+const gears = placeTrain(specs, module);
+const tip = (r: number) => r + module;
+
+// Rest pose (driver at 0): theta_child = -(Np/Nc)(theta_p - alpha) + alpha + pi + pi/Nc
+const theta = new Map<string, number>();
+for (const g of gears) {
+  if (!g.mesh) theta.set(g.id, 0);
+  else {
+    const p = gears.find((x) => x.id === g.mesh)!;
+    const tp = theta.get(p.id)!;
+    theta.set(g.id, -(p.teeth / g.teeth) * (tp - g.alphaRad) + g.alphaRad + Math.PI + Math.PI / g.teeth);
+  }
+}
+const deg = (rad: number) => ((rad * 180) / Math.PI).toFixed(3);
+
+const margin = annotate ? module * 5 : module * 2;
+const fit = () => {
+  const xs = gears.flatMap((g) => [g.x - tip(g.r), g.x + tip(g.r)]);
+  const ys = gears.flatMap((g) => [g.y - tip(g.r), g.y + tip(g.r)]);
+  const x0 = Math.min(...xs) - margin;
+  const y0 = Math.min(...ys) - margin;
+  return [x0, y0, Math.max(...xs) + margin - x0, Math.max(...ys) + margin - y0].map((n) => n.toFixed(1)).join(' ');
+};
+
+// Marked gears are numbered 0, 1, 2… skipping quiet idlers.
+let k = 0;
+const mark = specs.map((s) => (s.quiet ? undefined : k++));
+
+const notes = annotate
+  ? gears.flatMap((g, i) => {
+      if (mark[i] === undefined) return [];
+      const t = tip(g.r);
+      const a = (((specs[i].note ?? -45) as number) * Math.PI) / 180;
+      const reach = t + module * 1.4;
+      return [{
+        g,
+        ext: t + module * 2.2,
+        lx: g.x + reach * Math.cos(a),
+        ly: g.y + reach * Math.sin(a),
+        anchor: Math.cos(a) < -0.2 ? 'end' : Math.cos(a) > 0.2 ? 'start' : 'middle',
+        label: specs[i].label ?? `z${g.teeth}`,
+        index: mark[i]!,
+      }];
+    })
+  : [];
+---
+
+<svg
+  class:list={['gear-train', className]}
+  viewBox={viewBox ?? fit()}
+  aria-hidden="true"
+  focusable="false"
+  data-gear-train
+  data-speed={speed}
+>
+  {
+    notes.map((n) => (
+      <g class="drafting">
+        <path
+          class="centre"
+          d={`M${(n.g.x - n.ext).toFixed(1)} ${n.g.y.toFixed(1)}H${(n.g.x + n.ext).toFixed(1)}M${n.g.x.toFixed(1)} ${(n.g.y - n.ext).toFixed(1)}V${(n.g.y + n.ext).toFixed(1)}`}
+        />
+        <circle class="pitch" cx={n.g.x.toFixed(1)} cy={n.g.y.toFixed(1)} r={n.g.r.toFixed(1)} />
+      </g>
+    ))
+  }
+  {
+    gears.map((g) => (
+      <g transform={`translate(${g.x.toFixed(2)} ${g.y.toFixed(2)})`}>
+        <g
+          class="gear"
+          data-gear={g.id}
+          data-teeth={g.teeth}
+          data-mesh={g.mesh}
+          data-alpha={g.alphaRad}
+          data-index={mark[gears.indexOf(g)]}
+          style={`transform: rotate(${deg(theta.get(g.id)!)}deg)`}
+        >
+          <path d={g.path} fill-rule="evenodd" />
+          <circle r={(g.r * 0.62).toFixed(2)} class="gear-ring" />
+        </g>
+      </g>
+    ))
+  }
+  {
+    notes.map((n) => (
+      <text class="note" data-index={n.index} x={n.lx.toFixed(1)} y={n.ly.toFixed(1)} text-anchor={n.anchor} style={`font-size: ${(module * noteSize).toFixed(1)}px`}>
+        {numbered ? (<><tspan class="n">{n.index + 1}</tspan><tspan class="t">{`  ${n.label}`}</tspan></>) : n.label}
+      </text>
+    ))
+  }
+</svg>
+
+<style>
+  .gear-train { overflow: visible; }
+  .gear path {
+    fill: var(--gear-fill, #0e0a07);
+    stroke: var(--gear-edge, rgba(224, 131, 79, 0.45));
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .gear-ring {
+    fill: none;
+    stroke: var(--gear-edge, rgba(224, 131, 79, 0.45));
+    stroke-width: 1;
+    stroke-dasharray: 2 6;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.6;
+  }
+  .centre,
+  .pitch {
+    fill: none;
+    stroke: var(--gear-line, rgba(179, 162, 141, 0.32));
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .centre { stroke-dasharray: 14 4 2 4; }
+  .pitch { stroke-dasharray: 3 5; }
+  .note {
+    fill: var(--color-muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    dominant-baseline: central;
+    /* Halo in the page colour keeps the dashed centre lines from running through the text. */
+    paint-order: stroke;
+    stroke: var(--color-bg, #14100c);
+    stroke-width: 6px;
+    stroke-linejoin: round;
+    transition: fill 0.2s;
+  }
+  .gear path { transition: fill 0.2s, stroke 0.2s; }
+  /* Chapter hover/focus (set by the page) lights the matching gear and its label. */
+  .gear.on path { fill: var(--gear-fill-on, var(--color-surface-2)); stroke: var(--color-accent); }
+  .note.on { fill: var(--color-accent); }
+</style>

@@ -1,27 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Nav from '../components/Nav.astro';
-import Hero from '../components/Hero.astro';
-import Services from '../components/Services.astro';
-import Work from '../components/Work.astro';
-import About from '../components/About.astro';
-import Contact from '../components/Contact.astro';
+import FounderCard from '../components/FounderCard.astro';
 import Footer from '../components/Footer.astro';
 ---
 
 <BaseLayout>
-  <div class="scroll-progress"></div>
   <Nav />
-  <main>
-    <Hero />
-    <hr class="section-divider" />
-    <Work />
-    <hr class="section-divider" />
-    <Services />
-    <hr class="section-divider" />
-    <About />
-    <hr class="section-divider" />
-    <Contact />
+  <main id="main">
+    <FounderCard />
   </main>
   <Footer />
 </BaseLayout>

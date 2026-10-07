@@ -1,0 +1,27 @@
+/* Founder palette, shared with disagames.com: dark warm brown, cream text, rust accent,
+   cyan as the single cold accent (focus ring, status dot). Keep the two copies in sync. */
+:root {
+  --color-bg:          #14100c;
+  --color-surface:     #1d1712;
+  --color-surface-2:   #261e17;
+  --color-border:      #3a2e24;
+  --color-text:        #f1e7d8;
+  --color-muted:       #b3a28d;
+  --color-quiet:       #7d6a57; /* non-text marks only (3.4:1 on surface), never body text */
+  --color-accent:      #e0834f; /* rust, light enough for text and buttons on dark */
+  --color-accent-deep: #a84e24;
+  --color-accent-glow: rgba(224, 131, 79, 0.14);
+  --color-rift:        #5fd9e6; /* cyan: use sparingly, it is the only cold colour */
+  --color-rift-glow:   rgba(95, 217, 230, 0.35);
+  --color-on-accent:   #14100c;
+
+  --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.45);
+
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+
+  --radius: 6px;
+  --max-w:  1120px;
+  --gap:    clamp(1rem, 4vw, 2.5rem);
+}

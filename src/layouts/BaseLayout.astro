@@ -1,13 +1,28 @@
 ---
+import { PERSON, STUDIO, SOCIAL, STORY } from '../data/site';
+
 interface Props {
   title?: string;
   description?: string;
 }
 
 const {
-  title = 'Nguyen Thanh Hai — Independent Builder',
-  description = 'Backend developer from Vietnam building an indie game dev ecosystem. 7 years of Node.js and AWS at scale, now shipping tools, games, and AI pipelines.',
+  title = `${PERSON.name} — ${PERSON.role}`,
+  description = `${PERSON.name}, founder of ${STUDIO.name} in ${PERSON.city}. A backend engineer who took the long way round to making games.`,
 } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL('/og.jpg', Astro.site).href;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: PERSON.name,
+  url: PERSON.url,
+  jobTitle: 'Founder',
+  worksFor: { '@type': 'Organization', '@id': `${STUDIO.url}/#studio`, name: STUDIO.name, url: STUDIO.url },
+  sameAs: [SOCIAL.github, SOCIAL.linkedin],
+};
 ---
 
 <html lang="en">
@@ -15,98 +30,53 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#14100c" />
+    <script is:inline>
+      (function () {
+        var paused = false;
+        try { paused = localStorage.getItem('motion-paused') === '1'; } catch (e) {}
+        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var c = document.documentElement.classList;
+        if (reduce) c.add('no-motion');
+        else if (paused) c.add('motion-paused');
+        else c.add('motion-ok');
+      })();
+    </script>
 
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
 
-    <!-- Open Graph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="profile" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${PERSON.name}, ${PERSON.role}`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
-    <!-- Favicons -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/fraunces-vietnamese.woff2" as="font" type="font/woff2" crossorigin />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body>
+    <a class="skip-link" href="#main">{STORY.ui.skip}</a>
     <slot />
 
     <script>
-      // Scroll reveal (IntersectionObserver)
-      const revealEls = document.querySelectorAll('.reveal');
-      if (revealEls.length > 0) {
-        const revealObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                revealObserver.unobserve(entry.target);
-              }
-            });
-          },
-          { rootMargin: '0px 0px -10% 0px', threshold: 0 }
-        );
-        revealEls.forEach((el) => revealObserver.observe(el));
-      }
+      import '../scripts/motion.ts';
 
-      // Scroll progress bar
-      const progressBar = document.querySelector('.scroll-progress') as HTMLElement | null;
-      if (progressBar) {
-        window.addEventListener('scroll', () => {
-          const scrollTop = window.scrollY;
-          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-          const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-          progressBar.style.width = `${progress}%`;
-        }, { passive: true });
-      }
-
-      // Nav active section indicator
-      const navLinks = document.querySelectorAll('.nav-links a') as NodeListOf<HTMLAnchorElement>;
-      const sections = document.querySelectorAll('section[id]');
-      if (navLinks.length > 0 && sections.length > 0) {
-        const navObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                const id = entry.target.getAttribute('id');
-                navLinks.forEach((link) => {
-                  link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-                });
-              }
-            });
-          },
-          { rootMargin: '-30% 0px -60% 0px' }
-        );
-        sections.forEach((section) => navObserver.observe(section));
-      }
-
-    // --- Card Glow Tracking ---
-    const handleOnMouseMove = e => {
-      const target = e.currentTarget;
-      const rect = target.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      target.style.setProperty('--mouse-x', `${x}px`);
-      target.style.setProperty('--mouse-y', `${y}px`);
-    };
-
-    const initCards = () => {
-      for(const card of document.querySelectorAll('.card')) {
-        card.onmousemove = e => handleOnMouseMove(e);
-      }
-    };
-    
-    // Initialize glow tracking on load
-    initCards();
-  </script>
+    </script>
   </body>
 </html>
 

@@ -1,0 +1,313 @@
+---
+// The whole page: one founder card. Prose comes from STORY in src/data/site.ts.
+import GearTrain from './GearTrain.astro';
+import { PERSON, STUDIO, SOCIAL, STORY } from '../data/site';
+
+const parts = (c: (typeof STORY.chapters)[number]) =>
+  c.link ? c.body.split(c.link.text) : [c.body];
+---
+
+<div class="container card">
+  <header class="head">
+    <h1 id="hero-title">
+      <span class="hi">{STORY.hero.hi}</span>
+      <span class="line">{STORY.hero.line}</span>
+    </h1>
+    <p class="meta">
+      {PERSON.name} <span aria-hidden="true">·</span> Founder, <a href={STUDIO.url} class="text-link">{STUDIO.name}</a>
+      <span aria-hidden="true">·</span> {PERSON.city}
+    </p>
+  </header>
+
+  <figure class="fig">
+    <div class="plate">
+      <GearTrain
+        class="train"
+        module={8}
+        speed={6}
+        annotate
+        numbered
+        noteSize={1.7}
+        viewBox="-85.3 -90 682.4 172"
+        specs={[
+          // Four chapter gears one column apart (centres at 1/8, 3/8, 5/8, 7/8 of the width),
+          // joined by small idlers that zigzag above and below the line.
+          { id: 'a', teeth: 14, x: 0, y: 0, holes: 5, note: -90, label: STORY.chapters[0].title },
+          { id: 'i1', teeth: 9, mesh: 'a', angle: 22, quiet: true },
+          { id: 'b', teeth: 14, mesh: 'i1', angle: -22, holes: 4, note: -90, label: STORY.chapters[1].title },
+          { id: 'i2', teeth: 9, mesh: 'b', angle: -22, quiet: true },
+          { id: 'c', teeth: 14, mesh: 'i2', angle: 22, holes: 5, note: -90, label: STORY.chapters[2].title },
+          { id: 'i3', teeth: 9, mesh: 'c', angle: 22, quiet: true },
+          { id: 'd', teeth: 14, mesh: 'i3', angle: -22, holes: 4, note: -90, label: STORY.chapters[3].title },
+        ]}
+      />
+      <button type="button" class="motion-toggle" data-motion-toggle aria-pressed="false" data-label-pause={STORY.ui.pause} data-label-play={STORY.ui.play}>
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+          <path class="i-pause" d="M4 3h3v10H4zM9 3h3v10H9z"></path>
+          <path class="i-play" d="M5 3l8 5-8 5z"></path>
+        </svg>
+        <span class="sr-only" data-motion-label>{STORY.ui.pause}</span>
+      </button>
+    </div>
+
+    <ol class="chapters">
+      {STORY.chapters.map((c, i) => (
+        <li data-chapter={i}>
+          <span class="num" aria-hidden="true">{i + 1}</span>
+          <div>
+            <h2>{c.title}</h2>
+            <p>
+              {c.link ? (
+                <>
+                  {parts(c)[0]}<a href={c.link.href} class="text-link">{c.link.text}</a>{parts(c)[1]}
+                </>
+              ) : c.body}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <figcaption>
+      <span class="figno">{STORY.figLabel}</span> — {STORY.caption}
+    </figcaption>
+  </figure>
+
+  <div class="contact">
+    <ul class="links" aria-label="Contact">
+      <li><a href={STUDIO.url} class="text-link">{STUDIO.name}</a></li>
+      <li class="mail">
+        <a href={`mailto:${PERSON.email}`} class="text-link">{PERSON.email}</a>
+        <button type="button" class="copy" data-copy={PERSON.email} aria-label={STORY.ui.copyLabel}>{STORY.ui.copy}</button>
+        <span class="copy-status" role="status" aria-live="polite" data-copy-status></span>
+      </li>
+      <li><a href={SOCIAL.github} class="text-link">GitHub</a></li>
+      <li><a href={SOCIAL.linkedin} class="text-link">LinkedIn</a></li>
+    </ul>
+    {STORY.showDadLine && <p class="dad">{STORY.dadLine}</p>}
+  </div>
+</div>
+
+<script>
+  import { STORY } from '../data/site';
+
+  // Chapter hover/focus lights the matching gear; hovering a gear lights its chapter.
+  const svg = document.querySelector<SVGSVGElement>('.fig svg');
+  const items = document.querySelectorAll<HTMLElement>('.chapters li');
+  const light = (idx: number | null) => {
+    svg?.querySelectorAll('.gear, .note').forEach((el) => {
+      el.classList.toggle('on', idx !== null && (el as SVGElement).dataset.index === String(idx));
+    });
+    items.forEach((li) => li.classList.toggle('on', idx !== null && li.dataset.chapter === String(idx)));
+  };
+  items.forEach((li) => {
+    const i = Number(li.dataset.chapter);
+    li.addEventListener('mouseenter', () => light(i));
+    li.addEventListener('mouseleave', () => light(null));
+    li.addEventListener('focusin', () => light(i));
+    li.addEventListener('focusout', () => light(null));
+  });
+  svg?.addEventListener('pointerover', (e) => {
+    const el = (e.target as Element).closest<SVGElement>('[data-index]');
+    if (el) light(Number(el.dataset.index));
+  });
+  svg?.addEventListener('pointerleave', () => light(null));
+
+  // Copy email.
+  const btn = document.querySelector<HTMLButtonElement>('[data-copy]');
+  const status = document.querySelector<HTMLElement>('[data-copy-status]');
+  let timer = 0;
+  btn?.addEventListener('click', async () => {
+    let msg: string = STORY.ui.copied;
+    try {
+      await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+    } catch {
+      msg = STORY.ui.copyFailed;
+    }
+    if (status) status.textContent = msg;
+    clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      if (status) status.textContent = '';
+    }, 2500);
+  });
+</script>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 3.2vh, 2.25rem);
+    padding-block: clamp(1rem, 3vh, 2rem) clamp(1.5rem, 3vh, 2.5rem);
+  }
+
+  h1 {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .hi { font-size: clamp(2.6rem, 8vw, 4.4rem); }
+  .line {
+    font-size: clamp(1.4rem, 3.4vw, 2.1rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--color-muted);
+  }
+
+  .meta {
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+    max-width: none;
+  }
+
+  /* ── Fig. 1: the gear row is a timeline, one chapter under each gear ── */
+  .fig { display: flex; flex-direction: column; gap: 1.25rem; }
+  .fig :global(.train) {
+    width: 100%;
+    height: auto;
+    --gear-fill: var(--color-bg);
+    --gear-edge: rgba(224, 131, 79, 0.55);
+  }
+  /* Gears carry numerals only; the chapter headings carry the titles. */
+  .fig :global(.note .t) { display: none; }
+  .fig :global(.note) { font-size: 20px !important; }
+  @media (min-width: 1000px) {
+    .fig :global(.note) { display: none; }
+  }
+  figcaption {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+  .figno { color: var(--color-accent); }
+
+  /* The pause control sits with the drawing it controls: under its right end on narrow
+     screens (where the top corner holds gear 4), in the empty top-right corner from 1000px. */
+  .plate { position: relative; padding-bottom: 2.5rem; }
+  .motion-toggle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-bg);
+    color: var(--color-muted);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  @media (min-width: 1000px) {
+    .plate { padding-bottom: 0; }
+    .motion-toggle { top: 0; bottom: auto; }
+  }
+  .motion-toggle:hover { color: var(--color-text); border-color: var(--color-accent); }
+  .motion-toggle svg { fill: currentColor; }
+  .motion-toggle .i-play { display: none; }
+  .motion-toggle[aria-pressed='true'] .i-play { display: inline; }
+  .motion-toggle[aria-pressed='true'] .i-pause { display: none; }
+  :global(.no-motion) .motion-toggle { display: none; }
+  :global(.no-motion) .plate { padding-bottom: 0; }
+
+  /* ── Chapters ── */
+  .chapters {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  @media (min-width: 640px) {
+    .chapters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 1.5rem; }
+  }
+  @media (min-width: 1000px) {
+    .chapters { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+  }
+  .chapters li {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    align-content: start;
+    gap: 0.75rem;
+    padding: 0.7rem 0.75rem;
+    margin-inline: -0.75rem;
+    border-radius: calc(var(--radius) * 2);
+    transition: background-color 0.2s;
+  }
+  @media (min-width: 1000px) {
+    .chapters li {
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+      margin-inline: 0;
+      padding: 0.9rem 1.1rem 1rem;
+    }
+    .num { justify-self: center; }
+  }
+  .chapters li.on { background: var(--color-surface); }
+  .num {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.9rem;
+    text-align: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    color: var(--color-accent);
+    transition: border-color 0.2s;
+  }
+  li.on .num { border-color: var(--color-accent); }
+  h2 { font-size: 1.15rem; margin-bottom: 0.25rem; }
+  .chapters p {
+    font-size: 0.93rem;
+    line-height: 1.6;
+    color: var(--color-muted);
+    max-width: 60ch;
+  }
+
+  /* ── Contact ── */
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 1.4rem;
+    font-size: 0.95rem;
+  }
+  .links > li { display: inline-flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .links a { display: inline-block; padding-block: 0.3rem; }
+  .copy {
+    padding: 0.2rem 0.6rem;
+    min-height: 1.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .copy:hover { color: var(--color-text); border-color: var(--color-accent); }
+  .copy-status:empty { margin-left: -0.5rem; }
+  .copy-status {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-accent);
+    min-width: 0;
+  }
+  .dad { color: var(--color-muted); font-size: 0.9rem; }
+</style>
