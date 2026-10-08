@@ -41,7 +41,7 @@ export const STORY = {
     },
     {
       title: 'A few games, set aside',
-      body: "I tried several game ideas and built a few of them before this one, then set each one down. Every one left a lesson; the biggest: one person who isn't an artist can't draw everything alone.",
+      body: "I tried several game ideas and built a few of them before this one, then set each one down. Every one left me plenty of lessons; the biggest: one person who isn't an artist can't draw everything alone.",
     },
     {
       title: 'Disa Games, now',
